@@ -35,7 +35,7 @@ export class Results {
     private static showAllCollisions() {
         let checkboxes = $(".event-checkbox");
 
-        checkboxes.bootstrapSwitch("state", true);
+//        checkboxes.bootstrapSwitch("state", true);
 
         $("#collision-form").submit()
     }
@@ -43,7 +43,7 @@ export class Results {
     private static hideAllCollisions() {
         let checkboxes = $(".event-checkbox");
 
-        checkboxes.bootstrapSwitch("state", false);
+//        checkboxes.bootstrapSwitch("state", false);
 
         $("#collision-form").submit()
     }

@@ -18,7 +18,7 @@ gulp.task("watch", () => {
 
 gulp.task("copy", function () {
   return gulp
-    .src("./node_modules/summernote/dist/font/*")
+    .src("./node_modules/summernote/src/font/*")
     .pipe(gulp.dest("../static/css/font"));
 });
 

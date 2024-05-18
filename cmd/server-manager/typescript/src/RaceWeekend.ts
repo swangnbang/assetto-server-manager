@@ -188,7 +188,7 @@ export namespace RaceWeekend {
       $.get(modalContentURL).then((data: string) => {
         let $filtersModal = $("#filters-modal");
         $filtersModal.html(data);
-        $filtersModal.find("input[type='checkbox']").bootstrapSwitch();
+        //        $filtersModal.find("input[type='checkbox']").bootstrapSwitch();
         $filtersModal.modal();
 
         new SessionTransition($filtersModal, session1ID, session2ID);
@@ -207,7 +207,7 @@ export namespace RaceWeekend {
       $.get(modalContentURL).then((data: string) => {
         let $filtersModal = $("#filters-modal");
         $filtersModal.html(data);
-        $filtersModal.find("input[type='checkbox']").bootstrapSwitch();
+        //        $filtersModal.find("input[type='checkbox']").bootstrapSwitch();
         $filtersModal.modal();
 
         new EntryListPreview($filtersModal, sessionID);
@@ -246,7 +246,7 @@ export namespace RaceWeekend {
           $.get(modalContentURL).then((data: string) => {
             let $eventDetailsModal = $("#session-details-modal");
             $eventDetailsModal.html(data);
-            $eventDetailsModal.find("input[type='checkbox']").bootstrapSwitch();
+            //            $eventDetailsModal.find("input[type='checkbox']").bootstrapSwitch();
             $eventDetailsModal.modal();
           });
 
@@ -271,9 +271,9 @@ export namespace RaceWeekend {
         this.updateValues();
       });
 
-      this.$elem.find("input").on("switchChange.bootstrapSwitch", () => {
-        this.updateValues();
-      });
+      //      this.$elem.find("input").on("switchChange.bootstrapSwitch", () => {
+      //        this.updateValues();
+      //      });
 
       this.$elem.find("#save-filters").on("click", () => {
         this.saveValues();

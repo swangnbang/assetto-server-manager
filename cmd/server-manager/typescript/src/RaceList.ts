@@ -32,7 +32,7 @@ export class RaceList {
             $.get(modalContentURL).then((data: string) => {
                 let $eventDetailsModal = $("#race-details-modal");
                 $eventDetailsModal.html(data);
-                $eventDetailsModal.find("input[type='checkbox']").bootstrapSwitch();
+//                $eventDetailsModal.find("input[type='checkbox']").bootstrapSwitch();
                 $eventDetailsModal.modal();
             });
 
