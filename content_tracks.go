@@ -70,7 +70,6 @@ func LoadTrackMetaDataFromName(name string) (*TrackMetaData, error) {
 	var trackMetaData *TrackMetaData
 
 	err = json.NewDecoder(utfbom.SkipOnly(f)).Decode(&trackMetaData)
-
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +79,6 @@ func LoadTrackMetaDataFromName(name string) (*TrackMetaData, error) {
 
 func (t *Track) LoadMetaData() error {
 	trackMetaData, err := LoadTrackMetaDataFromName(t.Name)
-
 	if err != nil {
 		return err
 	}
@@ -133,7 +131,6 @@ func trackLayoutURL(track, layout string) string {
 
 	// look to see if the track preview image exists
 	_, err := os.Stat(filepath.Join(ServerInstallPath, layoutPath))
-
 	if err != nil {
 		return defaultTrackURL
 	}
@@ -141,8 +138,10 @@ func trackLayoutURL(track, layout string) string {
 	return "/" + filepath.ToSlash(layoutPath)
 }
 
-const trackInfoJSONName = "ui_track.json"
-const trackMetaDataName = "meta_data.json"
+const (
+	trackInfoJSONName = "ui_track.json"
+	trackMetaDataName = "meta_data.json"
+)
 
 type TrackInfo struct {
 	Name        string      `json:"name"`
@@ -166,13 +165,11 @@ func (tmd *TrackMetaData) Save(name string) error {
 	uiDirectory := filepath.Join(ServerInstallPath, "content", "tracks", name, "ui")
 
 	err := os.MkdirAll(uiDirectory, 0755)
-
 	if err != nil {
 		return err
 	}
 
 	f, err := os.Create(filepath.Join(uiDirectory, trackMetaDataName))
-
 	if err != nil {
 		return err
 	}
@@ -195,7 +192,6 @@ func GetTrackInfo(name, layout string) (*TrackInfo, error) {
 	uiDataFile = filepath.Join(uiDataFile, trackInfoJSONName)
 
 	data, err := ioutil.ReadFile(uiDataFile)
-
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +227,6 @@ type trackListTemplateVars struct {
 
 func (th *TracksHandler) list(w http.ResponseWriter, r *http.Request) {
 	tracks, err := th.trackManager.ListTracks()
-
 	if err != nil {
 		logrus.WithError(err).Errorf("could not get track list")
 	}
@@ -246,7 +241,6 @@ func (th *TracksHandler) delete(w http.ResponseWriter, r *http.Request) {
 	tracksPath := filepath.Join(ServerInstallPath, "content", "tracks")
 
 	existingTracks, err := th.trackManager.ListTracks()
-
 	if err != nil {
 		logrus.WithError(err).Errorf("could not get track list")
 		AddErrorFlash(w, r, "couldn't get track list")
@@ -262,7 +256,6 @@ func (th *TracksHandler) delete(w http.ResponseWriter, r *http.Request) {
 			found = true
 
 			err := os.RemoveAll(filepath.Join(tracksPath, trackName))
-
 			if err != nil {
 				found = false
 				logrus.WithError(err).Errorf("could not remove track files")
@@ -324,7 +317,7 @@ func (th *TracksHandler) trackImage(w http.ResponseWriter, r *http.Request) {
 	n, err := th.trackManager.GetTrackImage(w, track, layout)
 
 	if err != nil {
-		image := static.FSMustByte(false, "/img/no-preview-general.png")
+		image := static.FSMustByte("/img/no-preview-general.png")
 		_, _ = w.Write(image)
 	} else {
 		w.Header().Add("Content-Length", strconv.Itoa(int(n)))
@@ -340,8 +333,7 @@ func (th *TracksHandler) trackInfo(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(trackInfo(track, layout))
 }
 
-type TrackManager struct {
-}
+type TrackManager struct{}
 
 func NewTrackManager() *TrackManager {
 	return &TrackManager{}
@@ -360,20 +352,17 @@ func (tm *TrackManager) loadTrackDetailsForTemplate(trackName string) (*trackDet
 	resultsMap := make(map[string][]SessionResults)
 
 	track, err := tm.GetTrackFromName(trackName)
-
 	if err != nil {
 		return nil, err
 	}
 
 	err = track.LoadMetaData()
-
 	if err != nil {
 		logrus.WithError(err).Errorf("couldn't load meta data for track: %s", trackName)
 	}
 
 	for _, layout := range track.Layouts {
 		trackInfo, err := GetTrackInfo(track.Name, layout)
-
 		if err != nil {
 			logrus.WithError(err).Errorf("Couldn't load track info for layout: %s, track: %s", layout, track.Name)
 			continue
@@ -382,7 +371,6 @@ func (tm *TrackManager) loadTrackDetailsForTemplate(trackName string) (*trackDet
 		trackInfoMap[layout] = trackInfo
 
 		results, err := tm.ResultsForLayout(track.Name, layout)
-
 		if err != nil {
 			logrus.WithError(err).Errorf("Couldn't load results for layout: %s, track: %s", layout, track.Name)
 			continue
@@ -401,7 +389,6 @@ func (tm *TrackManager) loadTrackDetailsForTemplate(trackName string) (*trackDet
 
 func (tm *TrackManager) ResultsForLayout(trackName, layout string) ([]SessionResults, error) {
 	results, err := ListAllResults()
-
 	if err != nil {
 		return nil, err
 	}
@@ -421,7 +408,6 @@ func (tm *TrackManager) ListTracks() ([]Track, error) {
 	tracksPath := filepath.Join(ServerInstallPath, "content", "tracks")
 
 	trackFiles, err := ioutil.ReadDir(tracksPath)
-
 	if err != nil {
 		return nil, err
 	}
@@ -430,7 +416,6 @@ func (tm *TrackManager) ListTracks() ([]Track, error) {
 
 	for _, trackFile := range trackFiles {
 		track, err := tm.GetTrackFromName(trackFile.Name())
-
 		if err != nil {
 			continue
 		}
@@ -447,7 +432,6 @@ func (tm *TrackManager) ListTracks() ([]Track, error) {
 
 func (tm *TrackManager) decodeTrackImage(path string) (image.Image, error) {
 	f, err := os.Open(path)
-
 	if err != nil {
 		return nil, err
 	}
@@ -455,7 +439,6 @@ func (tm *TrackManager) decodeTrackImage(path string) (image.Image, error) {
 	defer f.Close()
 
 	data, _, err := image.Decode(f)
-
 	if err != nil {
 		return nil, err
 	}
@@ -491,7 +474,6 @@ func (tm *TrackManager) GetTrackImage(w io.Writer, track, layout string) (int64,
 	}
 
 	trackImage, err := tm.decodeTrackImage(trackImagePath)
-
 	if err != nil {
 		return -1, err
 	}
@@ -500,7 +482,6 @@ func (tm *TrackManager) GetTrackImage(w io.Writer, track, layout string) (int64,
 
 	if os.IsNotExist(err) {
 		trackMap, err = tm.decodeTrackImage(trackOutlinePath)
-
 		if err != nil {
 			return -1, err
 		}
@@ -528,7 +509,6 @@ func (tm *TrackManager) GetTrackImage(w io.Writer, track, layout string) (int64,
 	draw.Draw(combined, trackImageBounds, resizedMap, image.Pt(-trackImageBounds.Dx()+resizedMap.Bounds().Dx()+marginX, -trackImageBounds.Dy()+resizedMap.Bounds().Dy()+marginY), draw.Over)
 
 	combinedImageMap, err = os.Create(combinedImageMapPath)
-
 	if err != nil {
 		return -1, err
 	}
@@ -551,7 +531,6 @@ func (tm *TrackManager) GetTrackFromName(name string) (*Track, error) {
 	var layouts []string
 
 	files, err := ioutil.ReadDir(filepath.Join(tracksPath, name))
-
 	if err != nil {
 		logrus.WithError(err).Errorf("Can't read folder: %s", name)
 		return nil, err
@@ -619,7 +598,6 @@ func (tm *TrackManager) GetTrackFromName(name string) (*Track, error) {
 
 func (tm *TrackManager) UpdateTrackMetadata(name string, r *http.Request) error {
 	track, err := tm.GetTrackFromName(name)
-
 	if err != nil {
 		return err
 	}
@@ -643,7 +621,6 @@ func (filesystemTrackData) TrackMap(name, layout string) (*TrackMapData, error) 
 
 func (filesystemTrackData) TrackInfo(name, layout string) (*TrackInfo, error) {
 	trackInfo, err := GetTrackInfo(name, layout)
-
 	if err != nil {
 		logrus.WithError(err).Errorf("Could not load track info")
 
@@ -677,7 +654,6 @@ func LoadTrackMapData(track, trackLayout string) (*TrackMapData, error) {
 	p = filepath.Join(p, "data", "map.ini")
 
 	f, err := os.Open(p)
-
 	if err != nil {
 		return nil, err
 	}
@@ -685,13 +661,11 @@ func LoadTrackMapData(track, trackLayout string) (*TrackMapData, error) {
 	defer f.Close()
 
 	i, err := ini.Load(f)
-
 	if err != nil {
 		return nil, err
 	}
 
 	s, err := i.GetSection("PARAMETERS")
-
 	if err != nil {
 		return nil, err
 	}
@@ -725,7 +699,6 @@ func LoadTrackMapImage(track, trackLayout string) (image.Image, error) {
 	p = filepath.Join(p, "map.png")
 
 	f, err := os.Open(p)
-
 	if err != nil {
 		return nil, err
 	}
@@ -827,7 +800,6 @@ func trackSummary(track, layout string) string {
 
 func trackDownloadLink(track string) string {
 	metaData, err := LoadTrackMetaDataFromName(track)
-
 	if err != nil {
 		return ""
 	}

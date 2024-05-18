@@ -1,9 +1,8 @@
 package views
 
 import (
-	"bytes"
 	"html/template"
-	"io"
+	"io/fs"
 	"path/filepath"
 	"strings"
 )
@@ -13,53 +12,46 @@ type TemplateLoader struct {
 }
 
 func (t *TemplateLoader) Init() error {
-	for fname, data := range _escData {
-		if data.IsDir() {
-			continue
+	return fs.WalkDir(static, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
 		}
 
-		if strings.HasPrefix(fname, "/pages/") {
-			t.pages = append(t.pages, fname)
-		} else if strings.HasPrefix(fname, "/partials/") {
-			t.partials = append(t.partials, fname)
+		if d.IsDir() {
+			return nil
 		}
-	}
 
-	return nil
+		n := d.Name()
+
+		switch {
+		case strings.HasPrefix(n, "/pages/"):
+			t.pages = append(t.pages, n)
+		case strings.HasPrefix(n, "/partials/"):
+			t.partials = append(t.partials, n)
+		}
+
+		return nil
+	})
 }
 
 func (t *TemplateLoader) fileContents(name string) (string, error) {
-	f, err := _escStatic.Open(name)
-
-	if err != nil {
+	if b, err := static.ReadFile(name); err != nil {
 		return "", err
+	} else {
+		return string(b), err
 	}
-
-	defer f.Close()
-
-	buf := new(bytes.Buffer)
-
-	_, err = io.Copy(buf, f)
-
-	if err != nil {
-		return "", nil
-	}
-
-	return buf.String(), nil
 }
 
 func (t *TemplateLoader) Templates(funcs template.FuncMap) (map[string]*template.Template, error) {
 	templates := make(map[string]*template.Template)
 
 	templateData, err := t.fileContents("/layout/base.html")
-
 	if err != nil {
 		return nil, err
 	}
 
 	for _, partial := range t.partials {
 		contents, err := t.fileContents(partial)
-
 		if err != nil {
 			return nil, err
 		}
@@ -71,7 +63,6 @@ func (t *TemplateLoader) Templates(funcs template.FuncMap) (map[string]*template
 		pageData := templateData
 
 		pageText, err := t.fileContents(page)
-
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +70,6 @@ func (t *TemplateLoader) Templates(funcs template.FuncMap) (map[string]*template
 		pageData += pageText
 
 		t, err := template.New(page).Funcs(funcs).Parse(pageData)
-
 		if err != nil {
 			return nil, err
 		}

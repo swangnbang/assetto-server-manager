@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -37,7 +38,6 @@ func init() {
 
 func main() {
 	config, err := servermanager.ReadConfig("config.yml")
-
 	if err != nil {
 		ServeHTTPWithError(defaultAddress, "Read configuration file (config.yml)", err)
 		return
@@ -48,14 +48,12 @@ func main() {
 	}
 
 	store, err := config.Store.BuildStore()
-
 	if err != nil {
 		ServeHTTPWithError(config.HTTP.Hostname, "Open server manager storage (bolt or json)", err)
 		return
 	}
 
 	changes, err := changelog.LoadChangelog()
-
 	if err != nil {
 		ServeHTTPWithError(config.HTTP.Hostname, "Load changelog (internal error)", err)
 		return
@@ -75,7 +73,6 @@ func main() {
 	}
 
 	resolver, err := servermanager.NewResolver(templateLoader, os.Getenv("FILESYSTEM_HTML") == "true", store)
-
 	if err != nil {
 		ServeHTTPWithError(config.HTTP.Hostname, "Initialise resolver (internal error)", err)
 		return
@@ -83,7 +80,6 @@ func main() {
 	servermanager.SetAssettoInstallPath(config.Steam.InstallPath)
 
 	err = servermanager.InstallAssettoCorsaServer(config.Steam.Username, config.Steam.Password, config.Steam.ForceUpdate)
-
 	if err != nil {
 		ServeHTTPWithError(defaultAddress, "Install assetto corsa server with steamcmd. Likely you do not have steamcmd installed correctly.", err)
 		return
@@ -122,7 +118,6 @@ func main() {
 			}
 
 			err = os.Setenv("LUA_PATH", luaPath)
-
 			if err != nil {
 				logrus.WithError(err).Error("Couldn't automatically set Lua path, lua will not run! Try setting the environment variable LUA_PATH manually.")
 			}
@@ -132,14 +127,12 @@ func main() {
 	}
 
 	err = servermanager.InitWithResolver(resolver)
-
 	if err != nil {
 		ServeHTTPWithError(config.HTTP.Hostname, "Initialise server manager (internal error)", err)
 		return
 	}
 
 	listener, err := net.Listen("tcp", config.HTTP.Hostname)
-
 	if err != nil {
 		ServeHTTPWithError(defaultAddress, "Listen on hostname "+config.HTTP.Hostname+". Likely the port has already been taken by another application", err)
 		return
@@ -186,7 +179,6 @@ const udpBufferRecommendedSize = uint64(2e6) // 2MB
 
 func checkMemValue(key string) {
 	val, err := sysctlAsUint64(key)
-
 	if err != nil {
 		logrus.WithError(err).Errorf("Could not check sysctl val: %s", key)
 		return
@@ -220,10 +212,58 @@ func checkMemValue(key string) {
 
 func sysctlAsUint64(val string) (uint64, error) {
 	val, err := sysctl.Get(val)
-
 	if err != nil {
 		return 0, err
 	}
 
 	return strconv.ParseUint(val, 10, 0)
+}
+
+type HTTPErrorHandler struct {
+	Cause string
+	Error error
+}
+
+const httpErrorMessage = `!!! An Error Occurred !!!
+-------------------------
+
+Failed to initialise server manager. 
+
+Your configuration file is probably incorrect, or you haven't followed the instructions in the README properly. 
+Please carefully check that your options are set correctly.
+
+      Error Details
+-------------------------
+
+The error occurred attempting to: %s
+The error more specifically is: %s
+
+-------------------------
+`
+
+func (h *HTTPErrorHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, httpErrorMessage, h.Cause, h.Error)
+}
+
+func (h *HTTPErrorHandler) String() string {
+	return fmt.Sprintf(httpErrorMessage, h.Cause, h.Error)
+}
+
+func ServeHTTPWithError(addr string, cause string, err error) {
+	h := &HTTPErrorHandler{Cause: cause, Error: err}
+
+	fmt.Println(h.String())
+
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		return
+	}
+
+	if runtime.GOOS == "windows" {
+		_ = browser.OpenURL("http://" + strings.Replace(addr, "0.0.0.0", "127.0.0.1", 1))
+	}
+
+	if err := http.Serve(listener, h); err != nil {
+		logrus.Fatal(err)
+	}
 }

@@ -7,14 +7,11 @@ import (
 )
 
 // Pack changelog into this package
-//go:generate esc -o changelog_embed.go -pkg=changelog ../../CHANGELOG.md
+// xxxgo:generate esc -o changelog_embed.go -pkg=changelog ../../CHANGELOG.md
+
+// go:embed CHANGELOG.md
+var changelog []byte
 
 func LoadChangelog() (template.HTML, error) {
-	changelog, err := FSByte(false, "/CHANGELOG.md")
-
-	if err != nil {
-		return "", err
-	}
-
 	return template.HTML(blackfriday.Run(changelog)), nil
 }

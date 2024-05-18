@@ -23,7 +23,6 @@ func (slh *SteamLoginHandler) redirectToSteamLogin(backURLFunc func(r *http.Requ
 			return
 		default:
 			steamID, err := opID.ValidateAndGetId()
-
 			if err != nil {
 				logrus.WithError(err).Error("Could not validate steamID")
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -49,5 +48,5 @@ const clientSideRedirectHTML = `
 `
 
 func clientSideRedirect(url string, w io.Writer) {
-	_, _ = w.Write([]byte(fmt.Sprintf(clientSideRedirectHTML, url, url)))
+	fmt.Fprintf(w, clientSideRedirectHTML, url, url)
 }
