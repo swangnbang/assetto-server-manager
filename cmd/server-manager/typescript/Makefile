@@ -1,5 +1,5 @@
 deps:
-	npm install
+	yarn install
 
 build: deps
 	./node_modules/.bin/gulp build

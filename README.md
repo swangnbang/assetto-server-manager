@@ -2,7 +2,7 @@
 
 A web interface to manage an Assetto Corsa Server.
 
-Based on [https://github.com/JustaPenguin/assetto-server-manager](JustaPenguin/assetto-server-manager) with all the bullshit stripped
+Based on [https://github.com/JustaPenguin/assetto-server-manager](JustaPenguin/assetto-server-manager) with a lot of garbage stripped
 
 ## Features
 
