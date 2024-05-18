@@ -49,13 +49,11 @@ func (fs *filesystemTemplateLoader) Init() error {
 	var err error
 
 	fs.pages, err = zglob.Glob(filepath.Join(fs.dir, "pages", "**", "*.html"))
-
 	if err != nil {
 		return err
 	}
 
 	fs.partials, err = zglob.Glob(filepath.Join(fs.dir, "partials", "**", "*.html"))
-
 	if err != nil {
 		return err
 	}
@@ -73,7 +71,6 @@ func (fs *filesystemTemplateLoader) Templates(funcs template.FuncMap) (map[strin
 		templateList = append(templateList, page)
 
 		t, err := template.New(page).Funcs(funcs).ParseFiles(templateList...)
-
 		if err != nil {
 			return nil, err
 		}
@@ -117,7 +114,6 @@ func driverName(name string) string {
 }
 
 func driverInitials(name string) string {
-
 	name = strings.TrimSpace(name)
 
 	if UseShortenedDriverNames {
@@ -168,7 +164,6 @@ func NewRenderer(loader TemplateLoader, store Store, process ServerProcess, relo
 	}
 
 	err := tr.init()
-
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +182,6 @@ func (tr *Renderer) init() error {
 	defer tr.mutex.Unlock()
 
 	err := tr.loader.Init()
-
 	if err != nil {
 		return err
 	}
@@ -250,7 +244,6 @@ func (tr *Renderer) init() error {
 	funcs["anonymiseDriverGUID"] = AnonymiseDriverGUID
 
 	tr.templates, err = tr.loader.Templates(funcs)
-
 	if err != nil {
 		return err
 	}
@@ -413,7 +406,6 @@ func trackInfo(track, layout string) *TrackInfo {
 	}
 
 	t, err := GetTrackInfo(track, layout)
-
 	if err != nil {
 		return nil
 	}
@@ -495,7 +487,6 @@ func prettifyName(s string, acronyms bool) string {
 
 func weatherName(key string) string {
 	weathers, err := ListWeather()
-
 	if err != nil {
 		return key
 	}
@@ -574,7 +565,6 @@ func (tr *Renderer) addData(w http.ResponseWriter, r *http.Request, vars Templat
 	_ = errSession.Save(r, w)
 
 	opts, err := tr.store.LoadServerOptions()
-
 	if err != nil {
 		return err
 	}
@@ -622,11 +612,12 @@ func (tr *Renderer) LoadTemplate(w http.ResponseWriter, r *http.Request, view st
 		// reload templates on every request if enabled, so
 		// that we don't have to constantly restart the website
 		err := tr.init()
-
 		if err != nil {
 			return err
 		}
 	}
+
+	view = "pages/" + view
 
 	t, ok := tr.templates[filepath.ToSlash(view)]
 
@@ -656,7 +647,6 @@ func (tr *Renderer) LoadTemplate(w http.ResponseWriter, r *http.Request, view st
 // MustLoadTemplate asserts that a LoadTemplate call must succeed or be dealt with via the http.ResponseWriter
 func (tr *Renderer) MustLoadTemplate(w http.ResponseWriter, r *http.Request, view string, vars TemplateVars) {
 	err := tr.LoadTemplate(w, r, view, vars)
-
 	if err != nil {
 		if _, ok := err.(*net.OpError); !ok {
 			// don't capture OpErrors, they flood sentry with non-errors
@@ -673,7 +663,6 @@ func (tr *Renderer) LoadPartial(w http.ResponseWriter, r *http.Request, partial 
 		// reload templates on every request if enabled, so
 		// that we don't have to constantly restart the website
 		err := tr.init()
-
 		if err != nil {
 			return err
 		}
@@ -706,7 +695,6 @@ func (tr *Renderer) LoadPartial(w http.ResponseWriter, r *http.Request, partial 
 
 func (tr *Renderer) MustLoadPartial(w http.ResponseWriter, r *http.Request, partial string, vars TemplateVars) {
 	err := tr.LoadPartial(w, r, partial, vars)
-
 	if err != nil {
 		logrus.WithError(err).Errorf("Unable to load partial: %s", partial)
 		http.Error(w, "unable to load partial", http.StatusInternalServerError)
@@ -743,7 +731,6 @@ type AssetHelper struct {
 
 func NewAssetHelper(baseURL, prefix, suffix string, query map[string]string) *AssetHelper {
 	u, err := url.Parse(baseURL)
-
 	if err != nil {
 		panic("invalid base url: " + baseURL)
 	}
@@ -758,7 +745,6 @@ func NewAssetHelper(baseURL, prefix, suffix string, query map[string]string) *As
 
 func (a *AssetHelper) GetURL(location string) string {
 	u, err := url.Parse(location)
-
 	if err != nil {
 		return location
 	}

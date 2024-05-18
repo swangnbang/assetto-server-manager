@@ -5,6 +5,8 @@ import (
 	"io/fs"
 	"path/filepath"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 type TemplateLoader struct {
@@ -21,13 +23,15 @@ func (t *TemplateLoader) Init() error {
 			return nil
 		}
 
-		n := d.Name()
+		logrus.WithFields(logrus.Fields{
+			"path": path,
+		}).Info("loading template")
 
 		switch {
-		case strings.HasPrefix(n, "/pages/"):
-			t.pages = append(t.pages, n)
-		case strings.HasPrefix(n, "/partials/"):
-			t.partials = append(t.partials, n)
+		case strings.HasPrefix(path, "pages/"):
+			t.pages = append(t.pages, path)
+		case strings.HasPrefix(path, "partials/"):
+			t.partials = append(t.partials, path)
 		}
 
 		return nil
@@ -45,7 +49,7 @@ func (t *TemplateLoader) fileContents(name string) (string, error) {
 func (t *TemplateLoader) Templates(funcs template.FuncMap) (map[string]*template.Template, error) {
 	templates := make(map[string]*template.Template)
 
-	templateData, err := t.fileContents("/layout/base.html")
+	templateData, err := t.fileContents("layout/base.html")
 	if err != nil {
 		return nil, err
 	}

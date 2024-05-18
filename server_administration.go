@@ -80,7 +80,6 @@ type motdTemplateVars struct {
 
 func (sah *ServerAdministrationHandler) motd(w http.ResponseWriter, r *http.Request) {
 	opts, err := sah.store.LoadServerOptions()
-
 	if err != nil {
 		logrus.WithError(err).Error("couldn't load server options")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -93,7 +92,6 @@ func (sah *ServerAdministrationHandler) motd(w http.ResponseWriter, r *http.Requ
 		success := true
 
 		err := ioutil.WriteFile(filepath.Join(ServerInstallPath, MOTDFilename), []byte(wrapped), 0644)
-
 		if err != nil {
 			logrus.WithError(err).Error("couldn't save message of the day")
 			AddErrorFlash(w, r, "Failed to save message changes")
@@ -140,7 +138,6 @@ func (sah *ServerAdministrationHandler) currentConfig(w http.ResponseWriter, r *
 	entryList := &EntryList{}
 
 	configText, err := config.ReadString()
-
 	if err != nil {
 		logrus.WithError(err).Error("Couldn't load server config")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -148,7 +145,6 @@ func (sah *ServerAdministrationHandler) currentConfig(w http.ResponseWriter, r *
 	}
 
 	entryListText, err := entryList.ReadString()
-
 	if err != nil {
 		logrus.WithError(err).Error("Couldn't load entry list")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -169,7 +165,6 @@ type serverOptionsTemplateVars struct {
 
 func (sah *ServerAdministrationHandler) options(w http.ResponseWriter, r *http.Request) {
 	serverOpts, err := sah.raceManager.LoadServerOptions()
-
 	if err != nil {
 		logrus.WithError(err).Errorf("couldn't load server options")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -178,7 +173,6 @@ func (sah *ServerAdministrationHandler) options(w http.ResponseWriter, r *http.R
 
 	if r.Method == http.MethodPost {
 		err := DecodeFormData(serverOpts, r)
-
 		if err != nil {
 			logrus.WithError(err).Errorf("couldn't submit form")
 		}
@@ -203,7 +197,6 @@ func (sah *ServerAdministrationHandler) options(w http.ResponseWriter, r *http.R
 	}
 
 	form, err := EncodeFormData(serverOpts, r)
-
 	if err != nil {
 		logrus.WithError(err).Errorf("Couldn't encode form data")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -272,7 +265,6 @@ type autoFillEntrantListTemplateVars struct {
 
 func (sah *ServerAdministrationHandler) autoFillEntrantList(w http.ResponseWriter, r *http.Request) {
 	entrants, err := sah.raceManager.ListAutoFillEntrants()
-
 	if err != nil {
 		logrus.WithError(err).Error("could not list entrants")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -338,7 +330,6 @@ func (sah *ServerAdministrationHandler) logsDownload(w http.ResponseWriter, r *h
 	w.Header().Set("Content-Disposition", "attachment; filename= \""+logFile+"_"+time.Now().Format(time.RFC3339)+".log\"")
 
 	_, err := w.Write([]byte(outputString))
-
 	if err != nil {
 		logrus.WithError(err).Error("failed to return log " + logFile + " as file via http")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -410,7 +401,6 @@ func (sah *ServerAdministrationHandler) changelog(w http.ResponseWriter, r *http
 func (sah *ServerAdministrationHandler) robots(w http.ResponseWriter, r *http.Request) {
 	// do we want to let robots on the internet know things about us?!?
 	serverOpts, err := sah.store.LoadServerOptions()
-
 	if err != nil {
 		logrus.WithError(err).Errorf("couldn't load server options")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -428,7 +418,6 @@ func (sah *ServerAdministrationHandler) robots(w http.ResponseWriter, r *http.Re
 	}
 
 	_, err = w.Write([]byte(response))
-
 	if err != nil {
 		logrus.WithError(err).Errorf("couldn't write response text")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

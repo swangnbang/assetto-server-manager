@@ -25,7 +25,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var defaultAddress = "0.0.0.0:8772"
+var defaultAddress = "127.0.0.1:8772"
 
 const (
 	udpRealtimePosRefreshIntervalMin = 100
@@ -205,8 +205,6 @@ func checkMemValue(key string) {
 
 		red("You can do this with the command:\n\t sysctl -w %s=%d\n", key, udpBufferRecommendedSize)
 		redln()
-
-		redln("More information can be found on sysctl variables here:\n\t https://www.cyberciti.biz/faq/howto-set-sysctl-variables/")
 	}
 }
 
@@ -220,8 +218,8 @@ func sysctlAsUint64(val string) (uint64, error) {
 }
 
 type HTTPErrorHandler struct {
-	Cause string
 	Error error
+	Cause string
 }
 
 const httpErrorMessage = `!!! An Error Occurred !!!

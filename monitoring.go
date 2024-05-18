@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	sentryDSN   = "https://d8325490c2fa49b58cd9b557aed9ce8a@sentry.justapengu.in/4"
-	sentryJSDSN = "https://9153aa91818949c7a70708d0f0566faf@sentry.justapengu.in/5"
+	sentryDSN   = "https://fuckoff.sentry.example.org"
+	sentryJSDSN = "https://fuckoff.sentry.example.org"
 )
 
 var (
@@ -43,7 +43,6 @@ var (
 func InitMonitoring() {
 	logrus.Infof("initialising Raven monitoring")
 	err := raven.SetDSN(sentryDSN)
-
 	if err != nil {
 		logrus.WithError(err).Error("could not initialise raven monitoring")
 	}

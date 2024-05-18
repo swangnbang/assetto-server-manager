@@ -132,7 +132,6 @@ func (cmw *ContentManagerWrapper) NewCMContent(cars []string, trackName string, 
 
 	for _, carName := range cars {
 		car, err := cmw.carManager.LoadCar(carName, nil)
-
 		if err != nil {
 			logrus.WithError(err).Errorf("Couldn't load car for CM Wrapper: %s", carName)
 			continue
@@ -181,13 +180,11 @@ type contentManagerDescriptionTemplateOpts struct {
 
 func (cmw *ContentManagerWrapper) setDescriptionText(event RaceEvent) error {
 	text, err := html2text.FromString(cmw.serverConfig.GlobalServerConfig.ContentManagerWelcomeMessage)
-
 	if err != nil {
 		return err
 	}
 
 	eventDescriptionAsText, err := html2text.FromString(event.EventDescription(), html2text.Options{PrettyTables: true})
-
 	if err != nil {
 		return err
 	}
@@ -210,7 +207,6 @@ func (cmw *ContentManagerWrapper) setDescriptionText(event RaceEvent) error {
 
 	for _, carName := range strings.Split(cmw.serverConfig.CurrentRaceConfig.Cars, ";") {
 		car, err := cmw.carManager.LoadCar(carName, nil)
-
 		if err != nil {
 			logrus.WithError(err).Warnf("Could not load car details for: %s, skipping attaching download URLs to Content Manager Wrapper", carName)
 			continue
@@ -241,7 +237,6 @@ func (cmw *ContentManagerWrapper) setDescriptionText(event RaceEvent) error {
 
 	// interpret the custom template
 	t, err := template.New("cmDescription").Parse(text)
-
 	if err != nil {
 		return err
 	}
@@ -259,7 +254,6 @@ func (cmw *ContentManagerWrapper) setDescriptionText(event RaceEvent) error {
 		RaceEvent:          event,
 		ServerName:         cmw.serverConfig.GlobalServerConfig.Name,
 	})
-
 	if err != nil {
 		return err
 	}
@@ -280,14 +274,12 @@ func (cmw *ContentManagerWrapper) Start(servePort int, event RaceEvent, logger c
 	logrus.Infof("Starting content manager wrapper server on port %d", servePort)
 
 	serverOptions, err := cmw.store.LoadServerOptions()
-
 	if err != nil {
 		cmw.mutex.Unlock()
 		return err
 	}
 
 	u, err := url.Parse(fmt.Sprintf("http://127.0.0.1:%d", serverOptions.HTTPPort))
-
 	if err != nil {
 		cmw.mutex.Unlock()
 		return err
@@ -324,7 +316,6 @@ func (cmw *ContentManagerWrapper) Stop() {
 
 	logrus.Infof("Shutting down content manager wrapper server")
 	err := cmw.srv.Shutdown(context.Background())
-
 	if err != nil {
 		logrus.WithError(err).Error("Could not shutdown content manager wrapper server")
 	}
@@ -337,7 +328,6 @@ func (cmw *ContentManagerWrapper) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	}
 
 	details, err := cmw.buildContentManagerDetails(r.URL.Query().Get("guid"))
-
 	if err != nil {
 		logrus.WithError(err).Error("could not build content manager details")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -380,7 +370,6 @@ type ACHTTPSessionInfo struct {
 
 func (cmw *ContentManagerWrapper) getSessionInfo() (*ACHTTPSessionInfo, error) {
 	resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/INFO", cmw.serverConfig.GlobalServerConfig.HTTPPort))
-
 	if err != nil {
 		return nil, err
 	}
@@ -398,7 +387,6 @@ func (cmw *ContentManagerWrapper) getSessionInfo() (*ACHTTPSessionInfo, error) {
 
 func (cmw *ContentManagerWrapper) getPlayers(guid string) (*ACHTTPPlayers, error) {
 	resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/JSON|%s", cmw.serverConfig.GlobalServerConfig.HTTPPort, guid))
-
 	if err != nil {
 		return nil, err
 	}
@@ -423,7 +411,6 @@ func (cmw *ContentManagerWrapper) buildContentManagerDetails(guid string) (*Cont
 	live := cmw.sessionInfo
 
 	sessionInfo, err := cmw.getSessionInfo()
-
 	if err != nil {
 		return nil, err
 	}
@@ -436,7 +423,6 @@ func (cmw *ContentManagerWrapper) buildContentManagerDetails(guid string) (*Cont
 	}
 
 	players, err := cmw.getPlayers(guid)
-
 	if err != nil {
 		return nil, err
 	}
@@ -444,7 +430,6 @@ func (cmw *ContentManagerWrapper) buildContentManagerDetails(guid string) (*Cont
 	for entrantNum, entrant := range cmw.entryList.AsSlice() {
 		if entrantNum < len(players.Cars) {
 			players.Cars[entrantNum].ID, err = contentManagerIDChecksum(entrant.GUID)
-
 			if err != nil {
 				return nil, err
 			}
@@ -454,20 +439,17 @@ func (cmw *ContentManagerWrapper) buildContentManagerDetails(guid string) (*Cont
 
 	if global.Password != "" {
 		passwordChecksum[0], err = contentManagerPasswordChecksum(global.Name, global.Password)
-
 		if err != nil {
 			return nil, err
 		}
 
 		passwordChecksum[1], err = contentManagerPasswordChecksum(global.Name, global.AdminPassword)
-
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	geoInfo, err := geoIP()
-
 	if err != nil {
 		logrus.WithError(err).Warn("could not get geo IP data")
 		geoInfo = &GeoIP{}
@@ -507,7 +489,6 @@ func (cmw *ContentManagerWrapper) buildContentManagerDetails(guid string) (*Cont
 
 	// @TODO ContentManagerWrapperContentRequiresPassword from config_ini.go
 	cmContent, err := cmw.NewCMContent(sessionInfo.Cars, race.Track, false)
-
 	if err != nil {
 		logrus.Errorf("Couldn't attach content download URL(s) through CM Wrapper!")
 		cmContent = &CMContent{}
@@ -602,7 +583,6 @@ func getSolWeatherPrettyName(weatherName string) string {
 func contentManagerPasswordChecksum(serverName, password string) (string, error) {
 	h := sha1.New()
 	_, err := h.Write([]byte("apatosaur" + serverName + password))
-
 	if err != nil {
 		return "", err
 	}
@@ -613,7 +593,6 @@ func contentManagerPasswordChecksum(serverName, password string) (string, error)
 func contentManagerIDChecksum(guid string) (string, error) {
 	h := sha1.New()
 	_, err := h.Write([]byte("antarcticfurseal" + guid))
-
 	if err != nil {
 		return "", err
 	}
@@ -623,7 +602,7 @@ func contentManagerIDChecksum(guid string) (string, error) {
 
 var geoIPData *GeoIP
 
-const geoIPURL = "https://geoip.cj.workers.dev"
+const geoIPURL = "https://fuckoff.example.org"
 
 type GeoIP struct {
 	CountryCode string `json:"country_code"`
@@ -637,7 +616,6 @@ func geoIP() (*GeoIP, error) {
 	}
 
 	resp, err := http.Get(geoIPURL)
-
 	if err != nil {
 		return nil, err
 	}
@@ -653,13 +631,11 @@ func geoIP() (*GeoIP, error) {
 
 func getContentManagerJoinLink(config GlobalServerConfig) (*url.URL, error) {
 	geoIP, err := geoIP()
-
 	if err != nil {
 		return nil, err
 	}
 
 	cmURL, err := url.Parse(ContentManagerJoinLinkBase)
-
 	if err != nil {
 		return nil, err
 	}

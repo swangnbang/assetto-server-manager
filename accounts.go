@@ -128,13 +128,11 @@ func (a Account) HasSeenVersion(version string) bool {
 	}
 
 	newVersion, err := semver.NewVersion(version)
-
 	if err != nil {
 		return true
 	}
 
 	currentVersion, err := semver.NewVersion(a.LastSeenVersion)
-
 	if err != nil {
 		return true
 	}
@@ -189,7 +187,6 @@ func (ah *AccountHandler) MustLoginMiddleware(requiredGroup Group, next http.Han
 
 		if ok {
 			account, err := ah.store.FindAccountByID(accountID)
-
 			if err != nil {
 				logrus.WithError(err).Errorf("Could not find account for id: %s", accountID)
 				delete(sess.Values, sessionAccountID)
@@ -256,7 +253,6 @@ func (ah *AccountHandler) dismissChangelog(w http.ResponseWriter, r *http.Reques
 	}
 
 	err := ah.accountManager.SetCurrentVersion(account)
-
 	if err != nil {
 		logrus.WithError(err).Error("could not save current account version")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -270,7 +266,6 @@ func (ah *AccountHandler) dismissIntro(w http.ResponseWriter, r *http.Request) {
 	account.HasSeenIntroPopup = true
 
 	err := ah.accountManager.store.UpsertAccount(account)
-
 	if err != nil {
 		logrus.WithError(err).Error("could not save current account (dismiss intro)")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -383,7 +378,6 @@ func (ah *AccountHandler) toggleServerOpenStatus(w http.ResponseWriter, r *http.
 	accountOptions.IsOpen = !accountOptions.IsOpen
 
 	err = ah.store.SetMeta(serverAccountOptionsMetaKey, accountOptions)
-
 	if err != nil {
 		logrus.WithError(err).Errorf("Could not save server open status")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -410,7 +404,6 @@ func (ah *AccountHandler) newPassword(w http.ResponseWriter, r *http.Request) {
 
 		if !account.NeedsPasswordReset() {
 			currentPasswordHash, err := hashPassword([]byte(currentPassword), []byte(account.PasswordSalt))
-
 			if err != nil {
 				AddErrorFlash(w, r, "Unable to change your password")
 				set = false
@@ -478,7 +471,6 @@ func (ah *AccountHandler) update(w http.ResponseWriter, r *http.Request) {
 						GUID: account.GUID,
 						Team: account.Team,
 					})
-
 					if err != nil {
 						logrus.WithError(err).Errorf("Successfully updated details, but could not add to autofill entry list. Account id: %s", account.ID.String())
 					}
@@ -534,8 +526,10 @@ func (ah *AccountHandler) resetPassword(w http.ResponseWriter, r *http.Request) 
 	http.Redirect(w, r, r.Referer(), http.StatusFound)
 }
 
-var ErrAccountNeedsPassword = errors.New("servermanager: account needs to set a password")
-var ErrInvalidUsernameOrPassword = errors.New("servermanager: invalid username or password")
+var (
+	ErrAccountNeedsPassword      = errors.New("servermanager: account needs to set a password")
+	ErrInvalidUsernameOrPassword = errors.New("servermanager: invalid username or password")
+)
 
 type AccountManager struct {
 	store Store
@@ -555,7 +549,6 @@ func (am *AccountManager) login(r *http.Request, w http.ResponseWriter) error {
 	username, password := r.FormValue("Username"), r.FormValue("Password")
 
 	accounts, err := am.store.ListAccounts()
-
 	if err != nil {
 		return err
 	}
@@ -569,7 +562,6 @@ func (am *AccountManager) login(r *http.Request, w http.ResponseWriter) error {
 				sess.Values[sessionAccountID] = account.ID.String()
 
 				err := sess.Save(r, w)
-
 				if err != nil {
 					return err
 				}
@@ -578,7 +570,6 @@ func (am *AccountManager) login(r *http.Request, w http.ResponseWriter) error {
 			}
 
 			passwordHash, err := hashPassword([]byte(password), []byte(account.PasswordSalt))
-
 			if err != nil {
 				return err
 			}
@@ -599,13 +590,11 @@ func (am *AccountManager) login(r *http.Request, w http.ResponseWriter) error {
 
 func (am *AccountManager) resetPassword(accountID string) (*Account, error) {
 	account, err := am.store.FindAccountByID(accountID)
-
 	if err != nil {
 		return nil, err
 	}
 
 	defaultPass, err := diceware.Generate(4)
-
 	if err != nil {
 		return nil, err
 	}
@@ -625,13 +614,11 @@ func (am *AccountManager) SetCurrentVersion(account *Account) error {
 
 func (am *AccountManager) ChangePassword(account *Account, password string) error {
 	salt, err := generateSalt()
-
 	if err != nil {
 		return err
 	}
 
 	pass, err := hashPassword([]byte(password), []byte(salt))
-
 	if err != nil {
 		return err
 	}
@@ -675,7 +662,6 @@ func (ah *AccountHandler) createOrEditAccount(w http.ResponseWriter, r *http.Req
 	if id := chi.URLParam(r, "id"); id != "" {
 		var err error
 		account, err = ah.store.FindAccountByID(id)
-
 		if err != nil {
 			logrus.WithError(err).Errorf("Could not find account for id: %s", id)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -685,7 +671,6 @@ func (ah *AccountHandler) createOrEditAccount(w http.ResponseWriter, r *http.Req
 		isEditing = true
 	} else {
 		defaultPass, err := diceware.Generate(4)
-
 		if err != nil {
 			logrus.WithError(err).Errorf("Could not generate password")
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -720,7 +705,6 @@ func (ah *AccountHandler) createOrEditAccount(w http.ResponseWriter, r *http.Req
 		}
 
 		err := ah.store.UpsertAccount(account)
-
 		if err != nil {
 			logrus.WithError(err).Errorf("Couldn't save account with id: %s", account.ID)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -752,7 +736,6 @@ type manageAccountsTemplateVars struct {
 
 func (ah *AccountHandler) manageAccounts(w http.ResponseWriter, r *http.Request) {
 	accounts, err := ah.store.ListAccounts()
-
 	if err != nil {
 		logrus.WithError(err).Errorf("Could not list accounts")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -767,7 +750,6 @@ func (ah *AccountHandler) manageAccounts(w http.ResponseWriter, r *http.Request)
 
 func hashPassword(password, salt []byte) (string, error) {
 	pass, err := scrypt.Key(password, salt, 16384, 8, 1, 64)
-
 	if err != nil {
 		return "", err
 	}
@@ -778,7 +760,6 @@ func hashPassword(password, salt []byte) (string, error) {
 func generateSalt() (string, error) {
 	salt := make([]byte, 32)
 	_, err := io.ReadFull(rand.Reader, salt)
-
 	if err != nil {
 		return "", err
 	}

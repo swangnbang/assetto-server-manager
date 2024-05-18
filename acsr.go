@@ -17,7 +17,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var acsrURL = "https://acsr.assettocorsaservers.com"
+var acsrURL = "https://fuckoff.example.org"
 
 func init() {
 	gob.Register(Championship{})
@@ -60,7 +60,6 @@ func (a *ACSRClient) SendChampionship(inChampionship Championship) {
 	// championships are cloned before being sent to ACSR. this prevents any issues with pointers within the
 	// struct being erroneously modified in our original championship struct.
 	championship, err := cloneChampionship(inChampionship)
-
 	if err != nil {
 		logrus.WithError(err).Errorf("Cannot clone Championship for ACSR")
 		return
@@ -77,7 +76,6 @@ func (a *ACSRClient) SendChampionship(inChampionship Championship) {
 	}
 
 	geoIP, err := geoIP()
-
 	if err != nil {
 		logrus.WithError(err).Error("Could not get GeoIP data for server")
 		return
@@ -87,7 +85,6 @@ func (a *ACSRClient) SendChampionship(inChampionship Championship) {
 		"baseurl": config.HTTP.BaseURL,
 		"geoip":   geoIP.CountryName,
 	})
-
 	if err != nil {
 		logrus.WithError(err).Error("could not submit championship to ACSR")
 		return
@@ -104,25 +101,21 @@ func (a *ACSRClient) SendChampionship(inChampionship Championship) {
 
 func (a *ACSRClient) send(url string, data interface{}, queryParams map[string]string) (*http.Response, error) {
 	output, err := json.Marshal(data)
-
 	if err != nil {
 		return nil, err
 	}
 
 	key, err := hex.DecodeString(a.APIKey)
-
 	if err != nil {
 		return nil, err
 	}
 
 	encryptedData, err := encrypt(output, key)
-
 	if err != nil {
 		return nil, err
 	}
 
 	req, err := http.NewRequest("POST", acsrURL+url, bytes.NewBuffer(encryptedData))
-
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +158,6 @@ func (a *ACSRClient) GetRating(guids ...string) (map[string]*ACSRDriverRating, e
 	}
 
 	resp, err := a.send("/api/ratings", data, nil)
-
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +195,6 @@ type ACSRRatingRanges struct {
 
 func (a *ACSRClient) GetRanges() ([]*ACSRRatingRanges, error) {
 	resp, err := a.send("/api/ranges", nil, nil)
-
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +225,6 @@ func cloneChampionship(c Championship) (out Championship, err error) {
 	}
 
 	err = gob.NewEncoder(buf).Encode(c)
-
 	if err != nil {
 		return out, err
 	}
@@ -246,13 +236,11 @@ func cloneChampionship(c Championship) (out Championship, err error) {
 
 func encrypt(data, key []byte) ([]byte, error) {
 	c, err := aes.NewCipher(key)
-
 	if err != nil {
 		return nil, err
 	}
 
 	gcm, err := cipher.NewGCM(c)
-
 	if err != nil {
 		return nil, err
 	}
